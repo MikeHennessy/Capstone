@@ -169,3 +169,4 @@ def update_data():
 
 update_data()  # Start updates
 root.mainloop()
+
