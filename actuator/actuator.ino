@@ -1,106 +1,95 @@
-#define R_EN 2
-#define L_EN 3
-#define RPWM 4
-#define LPWM 5
-#define HALL_EXTEND A0
-#define HALL_RETRACT A1
-#define ACTUATOR_ENABLE 11
+#define R_EN_ACT1 2
+#define L_EN_ACT1 3
+#define RPWM_ACT1 4
+#define LPWM_ACT1 5
+#define ACTUATOR_ENABLE_ACT1 11
 
-const float PULSES_PER_MM = 15.0; // Conversion factor
+#define R_EN_ACT2 7
+#define L_EN_ACT2 6
+#define RPWM_ACT2 8
+#define LPWM_ACT2 9
+#define ACTUATOR_ENABLE_ACT2 10
 
-float targetDistanceMM = 0;
-int targetPulses = 0;
-int currentPulses = 0;
-float currentDistanceMM = 0; // Current position in millimeters
-bool moving = false;
-int lastHallExtendState = LOW;
-int lastHallRetractState = LOW;
+const float SPEED_INCHES_PER_SEC = 0.51;
+const float MM_PER_INCH = 25.4;
 
 void setup() {
-  Serial.begin(2000000);
-  pinMode(R_EN, OUTPUT);
-  pinMode(L_EN, OUTPUT);
-  pinMode(RPWM, OUTPUT);
-  pinMode(LPWM, OUTPUT);
-  pinMode(HALL_EXTEND, INPUT);
-  pinMode(HALL_RETRACT, INPUT);
-  pinMode(ACTUATOR_ENABLE, OUTPUT);
+  Serial.begin(9600);
+  pinMode(R_EN_ACT1, OUTPUT);
+  pinMode(L_EN_ACT1, OUTPUT);
+  pinMode(RPWM_ACT1, OUTPUT);
+  pinMode(LPWM_ACT1, OUTPUT);
+  pinMode(ACTUATOR_ENABLE_ACT1, OUTPUT);
 
-  digitalWrite(R_EN, HIGH);
-  digitalWrite(L_EN, HIGH);
-  digitalWrite(ACTUATOR_ENABLE, HIGH);
+  pinMode(R_EN_ACT2, OUTPUT);
+  pinMode(L_EN_ACT2, OUTPUT);
+  pinMode(RPWM_ACT2, OUTPUT);
+  pinMode(LPWM_ACT2, OUTPUT);
+  pinMode(ACTUATOR_ENABLE_ACT2, OUTPUT);
+
+  digitalWrite(R_EN_ACT1, HIGH);
+  digitalWrite(L_EN_ACT1, HIGH);
+  digitalWrite(ACTUATOR_ENABLE_ACT1, HIGH);
+
+  digitalWrite(R_EN_ACT2, HIGH);
+  digitalWrite(L_EN_ACT2, HIGH);
+  digitalWrite(ACTUATOR_ENABLE_ACT2, HIGH);
 }
 
-void moveActuator(int direction, int speed) {
-  if (direction > 0) { // Extend
-    digitalWrite(R_EN, HIGH);
-    digitalWrite(L_EN, HIGH);
-    analogWrite(RPWM, speed);
-    analogWrite(LPWM, 0);
-  } else if (direction < 0) { // Retract
-    digitalWrite(R_EN, HIGH);
-    digitalWrite(L_EN, HIGH);
-    analogWrite(RPWM, 0);
-    analogWrite(LPWM, speed);
-  } else { // Stop
-    digitalWrite(R_EN, HIGH);
-    digitalWrite(L_EN, HIGH);
-    analogWrite(RPWM, 0);
-    analogWrite(LPWM, 0);
+void moveActuator(int actuatorNum, int direction, unsigned long duration) {
+  if (actuatorNum == 1) {
+    if (direction > 0) {
+      analogWrite(RPWM_ACT1, 255);
+      analogWrite(LPWM_ACT1, 0);
+    } else if (direction < 0) {
+      analogWrite(RPWM_ACT1, 0);
+      analogWrite(LPWM_ACT1, 255);
+    } else {
+      analogWrite(RPWM_ACT1, 0);
+      analogWrite(LPWM_ACT1, 0);
+    }
+  } else if (actuatorNum == 2) {
+    if (direction > 0) {
+      analogWrite(RPWM_ACT2, 255);
+      analogWrite(LPWM_ACT2, 0);
+    } else if (direction < 0) {
+      analogWrite(RPWM_ACT2, 0);
+      analogWrite(LPWM_ACT2, 255);
+    } else {
+      analogWrite(RPWM_ACT2, 0);
+      analogWrite(LPWM_ACT2, 0);
+    }
+  }
+  delay(duration); // Move for the specified duration
+  if (actuatorNum == 1) {
+    analogWrite(RPWM_ACT1, 0);
+    analogWrite(LPWM_ACT1, 0);
+  } else if (actuatorNum == 2) {
+    analogWrite(RPWM_ACT2, 0);
+    analogWrite(LPWM_ACT2, 0);
   }
 }
 
 void loop() {
   if (Serial.available() > 0) {
-    targetDistanceMM = Serial.parseFloat(); // Read target distance in mm
-    while (Serial.available()) Serial.read();
-    targetPulses = int(abs(targetDistanceMM) * PULSES_PER_MM); // Convert mm to pulses
-    currentPulses = 0;
-    currentDistanceMM = 0; // Reset current position
-    moving = true;
-    Serial.print("Moving to target distance (mm): ");
-    Serial.println(targetDistanceMM);
+    String inputString = Serial.readStringUntil('\n');
+    int actuatorNum = inputString.substring(inputString.indexOf('[') + 1, inputString.indexOf(',')).toInt();
+    float targetDistanceMM = inputString.substring(inputString.indexOf(',') + 1, inputString.indexOf(']')).toFloat();
+
+    unsigned long targetTimeMS = abs(int(targetDistanceMM / MM_PER_INCH / SPEED_INCHES_PER_SEC * 1000));
+
+    Serial.print("Moving Actuator ");
+    Serial.print(actuatorNum);
+    Serial.print(" for (ms): ");
+    Serial.println(targetTimeMS);
+
+    digitalWrite(actuatorNum == 1 ? ACTUATOR_ENABLE_ACT1 : ACTUATOR_ENABLE_ACT2, HIGH);
+
+    moveActuator(actuatorNum, targetDistanceMM > 0 ? 1 : -1, targetTimeMS);
+
+    delay(500);
+    digitalWrite(actuatorNum == 1 ? ACTUATOR_ENABLE_ACT1 : ACTUATOR_ENABLE_ACT2, LOW);
+    Serial.println("Target reached");
   }
-
-  if (moving) {
-    digitalWrite(ACTUATOR_ENABLE, HIGH);
-
-    if (currentPulses < targetPulses) {
-      if (targetDistanceMM * PULSES_PER_MM > 0) {
-        moveActuator(1, 255); // Lower speed
-      } else {
-        moveActuator(-1, 255); // Lower speed
-      }
-    } else {
-      moveActuator(0, 0);
-      delay(500); // Add a 500ms delay before stopping.
-      digitalWrite(ACTUATOR_ENABLE, LOW);
-      moving = false;
-      Serial.println("Target reached");
-    }
-  }
-
-  int hallExtend = digitalRead(HALL_EXTEND);
-  int hallRetract = digitalRead(HALL_RETRACT);
-
-  //Serial.print("Hall Extend: "); Serial.print(hallExtend);
-  //Serial.print(" | Hall Retract: "); Serial.println(hallRetract);
-
-  if (hallExtend == HIGH && lastHallExtendState == LOW && targetPulses > 0) {
-    currentPulses++;
-    currentDistanceMM = currentPulses / PULSES_PER_MM; // Update current position
-    Serial.print("Pulse Count: "); Serial.println(currentPulses);
-    Serial.print("Current Distance (mm): "); Serial.println(currentDistanceMM);
-  }
-  lastHallExtendState = hallExtend;
-
-  if (hallRetract == HIGH && lastHallRetractState == LOW && targetPulses < 0) {
-    currentPulses--;
-    currentDistanceMM = currentPulses / PULSES_PER_MM; // Update current position
-    Serial.print("Pulse Count: "); Serial.println(currentPulses);
-    Serial.print("Current Distance (mm): "); Serial.println(currentDistanceMM);
-  }
-  lastHallRetractState = hallRetract;
-
   delay(10);
 }
