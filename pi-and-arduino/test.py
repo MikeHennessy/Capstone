@@ -38,6 +38,16 @@ def send_command(actuator_num, target_distance_mm):
         print("       -   Select 'I2C'.")
         print("       -   Enable I2C.")
         print("       -   Reboot your Raspberry Pi.")
+    except IOError as e:
+        print(f"Error communicating with I2C device: {e}")
+        print("   Please check the following:")
+        print("   1.  Ensure the I2C expander (TCA9548A) is correctly wired.")
+        print("   2.  Verify the I2C expander address (expander_address) is correct (default is 0x70, but check your device's datasheet).")
+        print("   3.  Confirm the Arduino I2C address (arduino_address) is correct (set in Arduino's Wire.begin()).")
+        print("   4.  Check for any other devices on the I2C bus that might be interfering.")
+        print("   5.  Make sure the I2C bus is enabled on your Raspberry Pi (using raspi-config).")
+        print("   6.  Try adding pull-up resistors (4.7kΩ) to the SDA and SCL lines.")
+        bus.close()
     except Exception as e:
         print(f"Error sending data: {e}")
         bus.close()
@@ -47,3 +57,4 @@ if __name__ == "__main__":
     send_command(1, 100.0)
     time.sleep(1)
     send_command(2, -50.0)
+
