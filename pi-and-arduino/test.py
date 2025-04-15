@@ -17,11 +17,11 @@ def send_data(integer_value, float_value):
         float_value: The float value to send.
     """
     try:
-        # Pack the integer and float into a byte string
-        data = struct.pack('>if', integer_value, float_value)  # > for big-endian, i for int, f for float
-
+        # Pack the integer and float into a byte string (BIG ENDIAN)
+        data = struct.pack('>if', integer_value, float_value)
+        print(f"Packed Data (Bytes): {list(data)}")  # Print the raw bytes
         # Send the data to the Arduino
-        bus.write_i2c_block_data(arduino_address, 0, list(data))  # Changed to write_i2c_block_data
+        bus.write_i2c_block_data(arduino_address, 0, list(data))
         print(f"Sent: Integer = {integer_value}, Float = {float_value}")
     except Exception as e:
         print(f"Error sending data: {e}")
@@ -32,13 +32,13 @@ if __name__ == "__main__":
         integer_data = 1
         float_data = 1.1003
         send_data(integer_data, float_data)
-        time.sleep(1) # Important delay
+        time.sleep(1)
 
         integer_data = 5
         float_data = 10.5
         send_data(integer_data, float_data)
         time.sleep(1)
-        
+
         integer_data = 100
         float_data = 200.22
         send_data(integer_data, float_data)
@@ -47,4 +47,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("Script stopped by user")
     finally:
-        bus.close() # Close the bus
+        bus.close()
+
