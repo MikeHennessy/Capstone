@@ -1,1 +1,50 @@
-echo -n "Hello" | i2cset -y 1 0x08 0 w-block
+import smbus
+import struct
+import time
+
+# I2C bus
+bus = smbus.SMBus(1)  # 1 for /dev/i2c-1
+
+# Arduino I2C address
+arduino_address = 0x08
+
+def send_data(integer_value, float_value):
+    """
+    Sends an integer and a float to the Arduino via I2C.
+
+    Args:
+        integer_value: The integer value to send.
+        float_value: The float value to send.
+    """
+    try:
+        # Pack the integer and float into a byte string
+        data = struct.pack('>if', integer_value, float_value)  # > for big-endian, i for int, f for float
+
+        # Send the data to the Arduino
+        bus.write_i2c_block_data(arduino_address, 0, list(data))  # Changed to write_i2c_block_data
+        print(f"Sent: Integer = {integer_value}, Float = {float_value}")
+    except Exception as e:
+        print(f"Error sending data: {e}")
+
+if __name__ == "__main__":
+    try:
+        # Example usage:
+        integer_data = 1
+        float_data = 1.1003
+        send_data(integer_data, float_data)
+        time.sleep(1) # Important delay
+
+        integer_data = 5
+        float_data = 10.5
+        send_data(integer_data, float_data)
+        time.sleep(1)
+        
+        integer_data = 100
+        float_data = 200.22
+        send_data(integer_data, float_data)
+        time.sleep(1)
+
+    except KeyboardInterrupt:
+        print("Script stopped by user")
+    finally:
+        bus.close() # Close the bus
