@@ -8,28 +8,35 @@ bus = smbus.SMBus(1)  # 1 for /dev/i2c-1
 
 # Arduino I2C address
 arduino_address = 0x08
-# File to store actuator extension
-EXTENSION_FILE = "actuator_extension.txt"
+# File to store actuator extensions
+EXTENSION_FILE = "actuator_extensions.txt"
 
-def read_extension():
-    """Reads the current actuator extension from the file."""
+def read_extensions():
+    """Reads the current actuator extensions from the file."""
+    extensions = {1: 0.0, 2: 0.0}  # Default values
     if os.path.exists(EXTENSION_FILE):
         try:
             with open(EXTENSION_FILE, "r") as f:
-                return float(f.read().strip())
-        except ValueError:
-            print("Error: Invalid data in extension file.  Resetting to 0.")
-            return 0.0
-    else:
-        return 0.0
+                lines = f.readlines()
+                if len(lines) >= 2:
+                    try:
+                        extensions[1] = float(lines[0].strip())
+                        extensions[2] = float(lines[1].strip())
+                    except ValueError:
+                         print("Error: Invalid data in extension file.  Resetting to 0.")
+                         extensions = {1: 0.0, 2: 0.0}
+        except Exception as e:
+            print(f"Error reading extension file: {e}")
+    return extensions
 
-def write_extension(extension):
-    """Writes the current actuator extension to the file."""
+def write_extensions(extensions):
+    """Writes the current actuator extensions to the file."""
     try:
         with open(EXTENSION_FILE, "w") as f:
-            f.write(str(extension))
-        except Exception as e:
-            print(f"Error writing to extension file: {e}")
+            f.write(str(extensions[1]) + "\n")
+            f.write(str(extensions[2]) + "\n")
+    except Exception as e:
+        print(f"Error writing to extension file: {e}")
 
 def send_actuator_data(actuator_num, mm_value):
     """
@@ -51,34 +58,34 @@ def send_actuator_data(actuator_num, mm_value):
 
 if __name__ == "__main__":
     try:
-        # Read the initial extension from the file
-        current_extension = read_extension()
-        print(f"Initial extension: {current_extension} mm")
+        # Read the initial extensions from the file
+        current_extensions = read_extensions()
+        print(f"Initial extensions: Actuator 1 = {current_extensions[1]} mm, Actuator 2 = {current_extensions[2]} mm")
 
         # Example usage:
         move1_mm = 15.5
         send_actuator_data(1, move1_mm)
         time.sleep(1)
-        current_extension += move1_mm
-        write_extension(current_extension)
-        print(f"New extension: {current_extension} mm")
+        current_extensions[1] += move1_mm
+        write_extensions(current_extensions)
+        print(f"New extensions: Actuator 1 = {current_extensions[1]} mm, Actuator 2 = {current_extensions[2]} mm")
 
         move2_mm = -10.2
         send_actuator_data(2, move2_mm)
         time.sleep(1)
-        current_extension += move2_mm
-        write_extension(current_extension)
-        print(f"New extension: {current_extension} mm")
+        current_extensions[2] += move2_mm
+        write_extensions(current_extensions)
+        print(f"New extensions: Actuator 1 = {current_extensions[1]} mm, Actuator 2 = {current_extensions[2]} mm")
 
         move3_mm = 0.0
         send_actuator_data(1, move3_mm)
         time.sleep(1)
-        current_extension += move3_mm
-        write_extension(current_extension)
-        print(f"New extension: {current_extension} mm")
+        current_extensions[1] += move3_mm
+        write_extensions(current_extensions)
+        print(f"New extensions: Actuator 1 = {current_extensions[1]} mm, Actuator 2 = {current_extensions[2]} mm")
         
-        final_extension = read_extension()
-        print(f"Final extension from file: {final_extension} mm")
+        final_extensions = read_extensions()
+        print(f"Final extensions from file: Actuator 1 = {final_extensions[1]} mm, Actuator 2 = {final_extensions[2]} mm")
 
     except KeyboardInterrupt:
         print("Script stopped by user")
