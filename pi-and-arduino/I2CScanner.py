@@ -6,6 +6,7 @@ bus = smbus.SMBus(1)
 
 # TCA9548A address
 TCA9548A_ADDRESS = 0x70
+TCA9548A_CHANNEL = 7  # Define the TCA9548A channel
 
 def select_i2c_channel(channel):
     """Selects the I2C channel on the TCA9548A."""
@@ -35,7 +36,6 @@ def scan_i2c_bus(channel):
     if not found_addresses:
         print(f"No devices found on channel {channel}")
     return found_addresses
-# Select the TCA9548A channel and scan
-if select_i2c_channel(TCA9548A_CHANNEL):
-    scan_i2c_bus(TCA9548A_CHANNEL)
 
+# Select the TCA9548A channel and scan
+scan_i2c_bus(TCA9548A_CHANNEL) # Pass the channel to the function
