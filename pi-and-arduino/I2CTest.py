@@ -26,14 +26,13 @@ def select_i2c_channel(bus, channel):
         print(f"Error selecting channel {channel}: {e}")
         return False
 
-def get_bus_voltage_ina219(channel):
-    """Reads the bus voltage from the INA219 using the library."""
+def get_bus_voltage_ina219(channel, bus_number=1):  # Default to bus 1
     if not select_i2c_channel(bus, channel):
         print("Failed to select TCA9548A channel. Aborting read.")
         return None
     try:
-        ina = INA219(SHUNT_OHMS, address=INA219_ADDRESS)
-        ina.configure()  # Use default configuration for voltage reading
+        ina = INA219(SHUNT_OHMS, address=INA219_ADDRESS, busnum=bus_number)
+        ina.configure()
         return ina.bus_voltage()
     except Exception as e:
         print(f"Error reading INA219 voltage: {e}")
