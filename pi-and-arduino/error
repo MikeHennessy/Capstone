@@ -1,0 +1,71 @@
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Collecting numpy
+  Using cached numpy-2.2.5.tar.gz (20.3 MB)
+  Preparing metadata (pyproject.toml) ... error
+  error: subprocess-exited-with-error
+  
+  × Preparing metadata (pyproject.toml) did not run successfully.
+  │ exit code: 1
+  ╰─> [52 lines of output]
+      + /home/sustaincap/Capstone/capstone/bin/python3 /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/vendored-meson/meson/meson.py setup /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86 /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/.mesonpy-lla68rsc -Dbuildtype=release -Db_ndebug=if-release -Db_vscrt=md --native-file=/tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/.mesonpy-lla68rsc/meson-python-native-file.ini
+      The Meson build system
+      Version: 1.5.2
+      Source dir: /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86
+      Build dir: /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/.mesonpy-lla68rsc
+      Build type: native build
+      Project name: NumPy
+      Project version: 2.2.5
+      C compiler for the host machine: cc (gcc 12.2.0 "cc (Raspbian 12.2.0-14+rpi1) 12.2.0")
+      C linker for the host machine: cc ld.bfd 2.40
+      C++ compiler for the host machine: c++ (gcc 12.2.0 "c++ (Raspbian 12.2.0-14+rpi1) 12.2.0")
+      C++ linker for the host machine: c++ ld.bfd 2.40
+      Cython compiler for the host machine: cython (cython 3.0.12)
+      Host machine cpu family: arm
+      Host machine cpu: arm
+      Program python found: YES (/home/sustaincap/Capstone/capstone/bin/python3)
+      Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+      Run-time dependency python found: YES 3.11
+      Has header "Python.h" with dependency python-3.11: YES
+      Compiler for C supports arguments -fno-strict-aliasing: YES
+      Message: During parsing cpu-dispatch: The following CPU features were ignored due to platform incompatibility or lack of support:
+      "XOP FMA4"
+      Test features "NEON" : Supported
+      Test features "NEON_FP16" : Supported
+      Test features "NEON_VFPV4" : Supported
+      Test features "ASIMD" : Unsupported due to Compiler fails against the test code of "ASIMD"
+      Test features "ASIMDHP" : Unsupported due to Implied feature "ASIMD" is not supported
+      Test features "ASIMDFHM" : Unsupported due to Implied feature "ASIMD" is not supported
+      Test features "SVE" : Unsupported due to Implied feature "ASIMD" is not supported
+      Configuring npy_cpu_dispatch_config.h using configuration
+      Message:
+      CPU Optimization Options
+        baseline:
+          Requested : min
+          Enabled   :
+        dispatch:
+          Requested : max -xop -fma4
+          Enabled   : NEON NEON_FP16 NEON_VFPV4
+      
+      Library m found: YES
+      Run-time dependency scipy-openblas found: NO (tried pkgconfig)
+      Run-time dependency openblas found: YES 0.3.21
+      Message: BLAS symbol suffix:
+      Run-time dependency openblas found: YES 0.3.21
+      Checking if "Check atomic builtins without -latomic" : links: YES
+      Program _build_utils/process_src_template.py found: YES (/home/sustaincap/Capstone/capstone/bin/python3 /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/numpy/_build_utils/process_src_template.py)
+      Program _build_utils/tempita.py found: YES (/home/sustaincap/Capstone/capstone/bin/python3 /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/numpy/_build_utils/tempita.py)
+      Configuring __config__.py using configuration
+      
+      ../numpy/_core/meson.build:145:31: ERROR: Can not run test applications in this cross environment.
+      
+      A full log can be found at /tmp/pip-install-kqi43e1_/numpy_108b2bac80c24e26a32fb844dc56ff86/.mesonpy-lla68rsc/meson-logs/meson-log.txt
+      [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
+error: metadata-generation-failed
+
+× Encountered error while generating package metadata.
+╰─> See above for output.
+
+note: This is an issue with the package mentioned above, not pip.
+hint: See above for details.
