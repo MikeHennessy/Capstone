@@ -15,6 +15,9 @@
 // Constants
 const float SPEED_INCHES_PER_SEC = 0.51;
 const float MM_PER_INCH = 25.4;
+const int TCA9548A_ADDRESS = 0x70; // I2C address of TCA9548A
+const int TCA9548A_CHANNEL = 7;   // Channel 7 (SCL/SDA7)
+const int ARDUINO_I2C_ADDRESS = 0x09; // Arduino's I2C Address
 
 // Global variables for actuator state
 int currentActuator = 0;       // 0: none, 1: actuator 1, 2: actuator 2
@@ -22,10 +25,12 @@ int currentDirection = 0;    // 0: stopped, 1: forward, -1: backward
 unsigned long moveStartTime = 0; // Time when movement started
 unsigned long moveDuration = 0;  // Duration of current movement
 bool isMoving = false;
+bool receivedCommand = false; // Flag to indicate a command was received
 
 void setup() {
-  Wire.begin(8); // Join I2C bus as slave with address 8
+  Wire.begin(9); // Join I2C bus as slave with address 9
   Serial.begin(9600); // For debugging
+  Wire.onReceive(receiveEvent);
 
   // pinMode declarations
   pinMode(R_EN_ACT1, OUTPUT);
@@ -33,25 +38,24 @@ void setup() {
   pinMode(RPWM_ACT1, OUTPUT);
   pinMode(LPWM_ACT1, OUTPUT);
   pinMode(ACTUATOR_ENABLE_ACT1, OUTPUT);
+  pinMode(ACTUATOR_ENABLE_ACT2, OUTPUT);
 
   pinMode(R_EN_ACT2, OUTPUT);
   pinMode(L_EN_ACT2, OUTPUT);
   pinMode(RPWM_ACT2, OUTPUT);
   pinMode(LPWM_ACT2, OUTPUT);
-  pinMode(ACTUATOR_ENABLE_ACT2, OUTPUT);
 
-  // Initial state of actuators
   digitalWrite(R_EN_ACT1, HIGH);
   digitalWrite(L_EN_ACT1, HIGH);
-  digitalWrite(ACTUATOR_ENABLE_ACT1, HIGH); // Enable Actuator 1
+  digitalWrite(ACTUATOR_ENABLE_ACT2, HIGH); // Enable Actuator 2
   digitalWrite(R_EN_ACT2, HIGH);
   digitalWrite(L_EN_ACT2, HIGH);
-  digitalWrite(ACTUATOR_ENABLE_ACT2, HIGH); // Enable Actuator 2
+  digitalWrite(ACTUATOR_ENABLE_ACT1, HIGH); // Enable Actuator 1
   Serial.println("Arduino ready.");
 }
 
 void loop() {
-  Wire.onReceive(receiveEvent); // Register event handler
+   //this is needed for the arduino to receive commands
   manageActuators();           // Handle actuator movement
 }
 
@@ -112,10 +116,12 @@ void manageActuators() {
       currentActuator = 0;
       currentDirection = 0;
       Serial.println("Target reached");
-      Wire.write("OK"); // Respond to the Raspberry Pi
+      //  No need to send "OK" back to the Pi in this version.
     }
   }
 }
+
+
 
 void receiveEvent(int howMany) {
   Serial.print("receiveEvent called.  Received ");
@@ -143,7 +149,7 @@ void receiveEvent(int howMany) {
     } u;
     u.b[3] = data[5];
     u.b[2] = data[6];
-    u.b[1] = data[7];
+    u.b[1] = data[7];  
     u.b[0] = data[8];
     float targetDistanceMM = u.f;
 
@@ -157,6 +163,7 @@ void receiveEvent(int howMany) {
 
     // Move the actuator
     moveActuator(actuatorNum, targetDistanceMM > 0 ? 1 : -1, targetTimeMS);
+    receivedCommand = true; // Set the flag
   } else {
     Serial.print("Received ");
     Serial.print(howMany);
